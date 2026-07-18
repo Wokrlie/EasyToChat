@@ -1,6 +1,6 @@
 <template>
 <div class="chat-container">
-  <div class="msg1">Chat</div>
+  <div class="active-user-name">Chat</div>
 </div>
 </template>
 
