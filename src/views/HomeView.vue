@@ -1,31 +1,46 @@
 <template>
- <div class="home-container">
-   <div class="tab-bar">
-     <div
-      v-for="tab in tabs"
-      :key="tab.name"
-      class="tab"
-      :class="{ active: currentTab === tab.name }"
-      @click="currentTab = tab.name"
-      >
-        {{tab.label}}
-      </div>
-   </div>
- </div>
+<div class="home-container">
+  <draggable
+  v-model="tabs"
+  item-key="name"
+  class="tab-bar"
+  :animation="200"
+  >
+    <template #item="{ element: tab }">
+    <RouterLink
+    :to="tab.path"
+    class="tab"
+    activeClass="active"
+    >
+      {{ tab.label }}
+    </RouterLink>
+    </template>
+  </draggable>
+  <div class="content">
+    <RouterView />
+  </div>
+</div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import draggable from 'vuedraggable';
+import { ref } from 'vue';
 
-const tabs = [
-  { name: "chat", label: "Chat" },
-  { name: "settings", label: "Settings"}
-]
+const tabs = ref([
+  { name: "chat", label: "Chat", path: "/chat" },
+  { name: "settings", label: "Settings", path: "/settings"}
+])
 
-const currentTab = ref('chat');
 </script>
 
 <style scoped>
+.home-container {
+  display: grid;
+  gap: 3px;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+}
+
 .tab-bar {
   display: flex;
   gap: 4px;
@@ -39,14 +54,27 @@ const currentTab = ref('chat');
   align-items: center;
   text-align: center;
   justify-content: center;
-  border-radius: 12px 12px 0 0;
+  border-radius: 12px;
 
   background-color: #eaeaea;
-  box-shadow:  10px 5px 5px #000;
+  color: black;
+  text-decoration: none;
   font-family: system-ui, monospace;
+  cursor: pointer;
+
+  transition: background-color 300ms;
 }
 
 .tab:hover {
-  background-color: #e1e1e1;
+  background-color: #e0e0e0;
+}
+
+.content {
+  overflow-y: auto;
+  height: 100vh;
+  border-width: 5px;
+  border-color: #aaa;
+  border-radius: 12px;
+  background-color: #ddd;
 }
 </style>
