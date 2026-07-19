@@ -7,7 +7,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(Crow REQUIRED)
 
-add_executable(EasyToChatBackend src/main.cpp)
+file(GLOB_RECURSE SOURCES
+     "src/*.cpp"
+     "src/*.c"
+)
+
+add_executable(EasyToChatBackend ${SOURCES})
 target_link_libraries(EasyToChatBackend PRIVATE
-    pthread
+  pthread
 )

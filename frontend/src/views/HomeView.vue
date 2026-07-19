@@ -35,13 +35,18 @@ const tabs = ref([
 
 <style scoped>
 .home-container {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   gap: 3px;
-  grid-template-rows: auto 1fr;
   height: 100vh;
+  overflow: hidden;
 }
 
 .tab-bar {
+  height: 40px;
+  flex-shrink: 0;
+
   display: flex;
   gap: 4px;
 }
@@ -70,8 +75,10 @@ const tabs = ref([
 }
 
 .content {
+  flex: 1;
+
   overflow-y: auto;
-  height: 100vh;
+  height: 100%;
   border-width: 5px;
   border-color: #aaa;
   border-radius: 12px;
