@@ -70,6 +70,11 @@ int main() {
 
             {
                 std::lock_guard<std::mutex> lock(g_mutex);
+
+                if (g_messages.size() == 1 && g_messages[0].sender_type == SenderType::System) {
+                    g_messages.clear();
+                }
+
                 g_messages.push_back({
                     g_next_id++,
                     sender_type,

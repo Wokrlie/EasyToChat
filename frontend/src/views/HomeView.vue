@@ -16,8 +16,8 @@
     </RouterLink>
     </template>
   </draggable>
-  <div class="content">
-    <RouterView />
+  <div class="main-container">
+    <RouterView  class="content"/>
   </div>
 </div>
 </template>
@@ -37,14 +37,13 @@ const tabs = ref([
 .home-container {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  gap: 3px;
   height: 100vh;
   overflow: hidden;
 }
 
 .tab-bar {
-  height: 40px;
+  padding: 5px 5px 0 5px;
+  height: 45px;
   flex-shrink: 0;
 
   display: flex;
@@ -74,14 +73,18 @@ const tabs = ref([
   background-color: #e0e0e0;
 }
 
-.content {
+.main-container {
+  padding: 0 5px 5px 5px;
   flex: 1;
+}
 
+.content {
   overflow-y: auto;
   height: 100%;
   border-width: 5px;
   border-color: #aaa;
   border-radius: 12px;
   background-color: #ddd;
+  box-sizing: border-box;
 }
 </style>

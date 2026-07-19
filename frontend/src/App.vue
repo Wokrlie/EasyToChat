@@ -12,8 +12,8 @@ onMounted(async () => {
   <RouterView />
 </template>
 
-<style scoped>
+<style>
 body {
-  font-family: system-ui, monospace;
+  margin: 0;
 }
 </style>

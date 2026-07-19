@@ -22,10 +22,14 @@
     <textarea id="chat-entry-area"
       v-model="entryText"
       cols="50"
-      placeholder="Type your message here...(Shift+Enter to next line)"
+      placeholder="Type your message here..."
       @keydown.enter.prevent = "sendMessage"
     ></textarea>
-    <button class="send-button" @click="sendMessage">Send</button>
+    <button class="send-button" @click="sendMessage">
+      <svg viewBox="0 0 20 20" width="20" height="20" fill="currentColor">
+        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+      </svg>
+    </button>
   </div>
 </div>
 </template>
@@ -92,6 +96,7 @@ onMounted(() => {
   height: 100%;
   padding: 10px;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .message-area {
@@ -100,6 +105,50 @@ onMounted(() => {
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.message-item {
+  display: flex;
+  flex-direction: row;
+  max-width: 80%;
+  animation: fadeIn 0.2s ease;
+}
+
+.message-own {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.message-item:not(.message-own):not(.message-system) {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.message-sender {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 4px;
+  padding: 0 4px;
+}
+
+.message-own .message-sender {
+  color: #2e7d32;
+}
+
+.message-bubble {
+  padding: 10px 14px;
+  border-radius: 18px;
+  word-break: break-word;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  max-width: 100%;
+  position: relative;
+}
+
+.message-own .message-bubble {
+  background: #dcf8c6;
+  border-top-right-radius: 4px;
+  color: #1e1e1e;
 }
 
 .message-system {
@@ -113,14 +162,13 @@ onMounted(() => {
   padding: 4px 12px;
 }
 
-.message-bubble {
-  border-color: #abf;
-  border-radius: 10px;
-}
-
 .message-content {
   font-family: system-ui, -apple-system, monospace;
   font-size: 14px;
+}
+
+.input-area {
+  position: relative;
 }
 
 #chat-entry-area {
@@ -128,7 +176,7 @@ onMounted(() => {
   width: 100%;
   height: auto;
   min-height: 60px;
-  padding: 12px;
+  padding: 12px 80px 12px 12px;
   resize: vertical;
   outline: none;
   box-sizing: border-box;
@@ -147,5 +195,24 @@ onMounted(() => {
 #chat-entry-area::placeholder {
   color: #aaa;
   font-style: italic;
+}
+
+.send-button {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  padding: 8px 16px;
+
+  background: #4caf50;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+  z-index: 1;
+}
+
+.send-button:hover {
+  background: #45a049;
 }
 </style>
