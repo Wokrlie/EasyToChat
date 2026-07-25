@@ -1,12 +1,7 @@
 <template>
-<div class="chat-container">
-  <div class="message-area">
-    <div
-      v-for="msg in messages"
-      :key="msg.id"
-      class="message-item"
-      :class="{ 'message-own': msg.sender_type === 'user', 'message-system': msg.sender_type === 'system'}"
-      >
+  <div class="chat-container">
+    <div class="message-area">
+      <div v-for="msg in messages" :key="msg.id" class="message-item" :class="getMessageClass(msg)">
         <div v-if="msg.sender_type === 'system'" class="system-text">
           {{ msg.content }}
         </div>
@@ -17,76 +12,88 @@
           </div>
         </div>
       </div>
+    </div>
+    <div class="input-area">
+      <textarea
+        id="chat-entry-area"
+        v-model="entryText"
+        cols="50"
+        placeholder="Type your message here..."
+        @keydown.enter.prevent="sendMessage"
+      ></textarea>
+      <button class="send-button" @click="sendMessage">
+        <svg viewBox="0 0 20 20" width="20" height="20" fill="currentColor">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+        </svg>
+      </button>
+    </div>
   </div>
-  <div class="input-area">
-    <textarea id="chat-entry-area"
-      v-model="entryText"
-      cols="50"
-      placeholder="Type your message here..."
-      @keydown.enter.prevent = "sendMessage"
-    ></textarea>
-    <button class="send-button" @click="sendMessage">
-      <svg viewBox="0 0 20 20" width="20" height="20" fill="currentColor">
-        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-      </svg>
-    </button>
-  </div>
-</div>
 </template>
 
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from 'vue'
+import { useUserStore } from '@/stores/user'
 import type { Message } from '@/types/message'
-import { chatApi } from '@/api/chatApi';
+import { chatApi } from '@/api/chatApi'
 
-const entryText = ref('');
-const messages = ref<Message[]>([]);
-const messageAreaRef = ref<HTMLElement | null>(null);
+const entryText = ref('')
+const messages = ref<Message[]>([])
+const messageAreaRef = ref<HTMLElement | null>(null)
+
+const userStore = useUserStore()
+
+const getMessageClass = (msg: Message) => {
+  if (msg.sender_type === 'user') {
+    if (msg.sender_name === userStore.username_) return 'message-own'
+    else return 'message-others'
+  }
+  if (msg.sender_type === 'system') return 'message-system'
+}
 
 const scrollToBottom = () => {
   nextTick(() => {
     if (messageAreaRef.value) {
-      messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+      messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight
     }
-  });
-};
+  })
+}
 
 const sendMessage = async () => {
-  const content = entryText.value.trim();
-  if (!content) return;
+  const content = entryText.value.trim()
+  if (!content) return
 
   const tempMsg: Message = {
     id: Date.now(),
-    sender_type: "user",
-    sender_name: "Me",
+    sender_type: 'user',
+    sender_name: 'Me',
     content: content,
     timestamp: new Date().toISOString(),
-  };
-  messages.value.push(tempMsg);
-  entryText.value = '';
-  scrollToBottom();
+  }
+  messages.value.push(tempMsg)
+  entryText.value = ''
+  scrollToBottom()
 
   try {
-    await chatApi.sendMessage(content);
-    await fetchMessages();
+    await chatApi.sendMessage(content, userStore.nickname)
+    await fetchMessages()
   } catch (error) {
-    console.error("Failed to send message: ", error);
+    console.error('Failed to send message: ', error)
   }
 }
 
 const fetchMessages = async () => {
   try {
-    const response = await chatApi.getMessages();
-    messages.value = response.data;
-    scrollToBottom();
+    const response = await chatApi.getMessages()
+    messages.value = response.data
+    scrollToBottom()
   } catch (error) {
-    console.error("Failed to fetch the messages: ", error);
+    console.error('Failed to fetch the messages: ', error)
   }
 }
 
 onMounted(() => {
-  fetchMessages();
-});
+  fetchMessages()
+})
 </script>
 
 <style scoped>
@@ -114,14 +121,14 @@ onMounted(() => {
   animation: fadeIn 0.2s ease;
 }
 
+.message-others {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
 .message-own {
   align-self: flex-end;
   align-items: flex-end;
-}
-
-.message-item:not(.message-own):not(.message-system) {
-  align-self: flex-start;
-  align-items: flex-start;
 }
 
 .message-sender {
@@ -163,7 +170,10 @@ onMounted(() => {
 }
 
 .message-content {
-  font-family: system-ui, -apple-system, monospace;
+  font-family:
+    system-ui,
+    -apple-system,
+    monospace;
   font-size: 14px;
 }
 

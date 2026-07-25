@@ -1,36 +1,26 @@
 <template>
-<div class="home-container">
-  <draggable
-  v-model="tabs"
-  item-key="name"
-  class="tab-bar"
-  :animation="200"
-  >
-    <template #item="{ element: tab }">
-    <RouterLink
-    :to="tab.path"
-    class="tab"
-    activeClass="active"
-    >
-      {{ tab.label }}
-    </RouterLink>
-    </template>
-  </draggable>
-  <div class="main-container">
-    <RouterView  class="content"/>
+  <div class="home-container">
+    <draggable v-model="tabs" item-key="name" class="tab-bar" :animation="200">
+      <template #item="{ element: tab }">
+        <RouterLink :to="tab.path" class="tab" activeClass="active">
+          {{ tab.label }}
+        </RouterLink>
+      </template>
+    </draggable>
+    <div class="main-container">
+      <RouterView class="content" />
+    </div>
   </div>
-</div>
 </template>
 
 <script setup lang="ts">
-import draggable from 'vuedraggable';
-import { ref } from 'vue';
+import draggable from 'vuedraggable'
+import { ref } from 'vue'
 
 const tabs = ref([
-  { name: "chat", label: "Chat", path: "/chat" },
-  { name: "settings", label: "Settings", path: "/settings"}
+  { name: 'chat', label: 'Chat', path: '/chat' },
+  { name: 'settings', label: 'Settings', path: '/settings' },
 ])
-
 </script>
 
 <style scoped>

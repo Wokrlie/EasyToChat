@@ -1,7 +1,7 @@
 <template>
-<div class="settings-container">
-  <div class="msg1">Settings</div>
-</div>
+  <div class="settings-container">
+    <div class="msg1">Settings</div>
+  </div>
 </template>
 
 <style scoped>
@@ -12,5 +12,4 @@
   font-size: 32px;
   font-family: system-ui;
 }
-
 </style>
