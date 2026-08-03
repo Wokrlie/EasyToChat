@@ -40,3 +40,6 @@ __screenshots__/
 
 # Backend
 build/
+
+# Client
+.cache

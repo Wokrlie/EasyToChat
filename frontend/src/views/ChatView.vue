@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
 import type { Message } from '@/types/message'
 import { chatApi } from '@/api/chatApi'
@@ -41,10 +41,13 @@ const messages = ref<Message[]>([])
 const messageAreaRef = ref<HTMLElement | null>(null)
 
 const userStore = useUserStore()
+let ws: WebSocket | null = null;
+
+const currentUserNickname = ref(userStore.nickname);
 
 const getMessageClass = (msg: Message) => {
   if (msg.sender_type === 'user') {
-    if (msg.sender_name === userStore.username_) return 'message-own'
+    if (msg.sender_name === currentUserNickname.value) return 'message-own'
     else return 'message-others'
   }
   if (msg.sender_type === 'system') return 'message-system'
@@ -62,20 +65,10 @@ const sendMessage = async () => {
   const content = entryText.value.trim()
   if (!content) return
 
-  const tempMsg: Message = {
-    id: Date.now(),
-    sender_type: 'user',
-    sender_name: 'Me',
-    content: content,
-    timestamp: new Date().toISOString(),
-  }
-  messages.value.push(tempMsg)
-  entryText.value = ''
-  scrollToBottom()
-
   try {
-    await chatApi.sendMessage(content, userStore.nickname)
+    await chatApi.sendMessage(content, currentUserNickname.value)
     await fetchMessages()
+    entryText.value = ''
   } catch (error) {
     console.error('Failed to send message: ', error)
   }
@@ -91,8 +84,20 @@ const fetchMessages = async () => {
   }
 }
 
+const connectWebsocket = () => {
+  ws = new WebSocket("ws://localhost/ws")
+}
+
 onMounted(() => {
   fetchMessages()
+  connectWebsocket()
+})
+
+onUnmounted(() => {
+  if (ws) {
+    ws.close()
+    ws = null;
+  }
 })
 </script>
 
