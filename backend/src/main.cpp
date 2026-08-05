@@ -4,6 +4,9 @@
 #include <crow/http_response.h>
 #include <crow/json.h>
 #include <crow/logging.h>
+#include <crow/routing.h>
+#include <crow/websocket.h>
+#include <filesystem>
 #include <mutex>
 #include <shared_mutex>
 #include <string>
@@ -13,9 +16,11 @@
 
 #include "functions/Time.h"
 #include "functions/Convert.h"
+#include "functions/Path.h"
 #include "types/Message.h"
 #include "types/User.h"
 
+// DATAs
 std::vector<Message> g_messages;
 std::mutex g_message_mutex;
 int g_next_id = 1;
@@ -23,13 +28,21 @@ int g_next_id = 1;
 std::unordered_map<std::string, User> g_users;
 std::shared_mutex g_user_mutex;
 
-int main() {
+std::vector<crow::websocket::connection*> g_connections;
+std::mutex g_conn_mutex;
+
+void broadcast_message(const std::string& msg);
+
+int main(int argc, char* argv[]) {
     crow::SimpleApp app;
 
-    // test
-    g_users.insert_or_assign("Wokrlie", User{ "Wokrlie John" });
-    g_users.insert_or_assign("Bonus", User{ "Bonus Louis" });
-    // end test
+    std::filesystem::path staticDir = getStaticDir();
+    CROW_ROUTE(app, "/")
+        ([&]() {
+            crow::response res;
+            res.set_static_file_info((staticDir / "index.html").string());
+            return res;
+        });
 
     CROW_ROUTE(app, "/api/ping")
         ([]() {
@@ -96,6 +109,10 @@ int main() {
                 });
             }
 
+            crow::json::wvalue broadcast_msg;
+            broadcast_msg["type"] = "new_msg";
+            broadcast_message(broadcast_msg.dump());
+
             return crow::response(201);
         });
 
@@ -136,6 +153,8 @@ int main() {
             User user = {
                 body["nickname"].s()
             };
+            if (body.has("gender")) user.gender = string_to_gender(body["gender"].s());
+
             auto [it, inserted] = g_users.insert_or_assign(body["username"].s(), user);
             if (inserted) {
                 return crow::response(201);
@@ -146,5 +165,37 @@ int main() {
             return crow::response(200, result);
         });
 
+    CROW_WEBSOCKET_ROUTE(app, "/ws")
+        .onaccept([](const crow::request& req, void**) {
+            return true;
+        })
+        .onopen([](crow::websocket::connection& conn) {
+            CROW_LOG_INFO << "Websocket client connected";
+            conn.send_pong("WebSocket server connected");
+            std::lock_guard<std::mutex> lock(g_conn_mutex);
+            g_connections.push_back(&conn);
+        })
+        .onmessage([](crow::websocket::connection& conn, const std::string& data, bool is_binary) {
+        })
+        .onclose([](crow::websocket::connection& conn, const std::string& reason, unsigned short code) {
+            CROW_LOG_INFO << "Connection have been closed, reason: " << reason << ", status code: " << code;
+            std::lock_guard<std::mutex> lock(g_conn_mutex);
+            g_connections.erase(
+                std::remove(g_connections.begin(), g_connections.end(), &conn),
+                g_connections.end()
+            );
+        })
+        .onerror([](crow::websocket::connection& conn, const std::string& error) {
+            CROW_LOG_ERROR << "Websocket error: " << error;
+        })
+    ;
+
     app.port(8080).multithreaded().run();
+}
+
+void broadcast_message(const std::string& msg) {
+    std::lock_guard<std::mutex> lock(g_conn_mutex);
+    for (auto conn : g_connections) {
+        if (conn) conn->send_text(msg);
+    }
 }

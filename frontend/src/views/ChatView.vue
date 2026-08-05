@@ -85,7 +85,19 @@ const fetchMessages = async () => {
 }
 
 const connectWebsocket = () => {
-  ws = new WebSocket("ws://localhost/ws")
+  ws = new WebSocket("ws://localhost:8080/ws")
+  ws.onopen = () => {
+    console.log("WebSocket client connected. ")
+    ws?.send("PING")
+  }
+  ws.onmessage = (event) => {
+    console.log("Received websocket message. ")
+    const data = JSON.parse(event.data);
+    if (data.type === "new_msg") { fetchMessages() }
+  }
+  ws.onclose = () => {
+    console.log("WebSocket client closed. ")
+  }
 }
 
 onMounted(() => {
