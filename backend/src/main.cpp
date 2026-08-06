@@ -21,7 +21,7 @@
 #include "types/Message.h"
 #include "types/User.h"
 
-// DATAs
+// Datas
 std::vector<Message> g_messages;
 std::mutex g_message_mutex;
 int g_next_id = 1;
