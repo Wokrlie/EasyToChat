@@ -5,10 +5,16 @@ name: CMake on a single platform
 on:
   push:
     branches: [ "main" ]
-    paths: ["backend/**", "desktop-client/**"]
+    paths:
+      - "backend/**"
+      - "desktop-client/**"
+      - ".github/workflow"
   pull_request:
     branches: [ "main" ]
-    paths: ["backend/**", "desktop-client/**"]
+    paths:
+      - "backend/**"
+      - "desktop-client/**"
+      - ".github/workflow"
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
