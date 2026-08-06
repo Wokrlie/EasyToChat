@@ -2,7 +2,8 @@
 
 ## Notice
 
-Since this project is during the prototype development stage, it will rolling-update before v0.1.0.
+Since this project will upgrade the dependencies every week(if the dependencies need upgrading),  
+please fetch on time.
 
 ## Quick Start
 
