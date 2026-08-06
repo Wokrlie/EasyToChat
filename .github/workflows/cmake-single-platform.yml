@@ -21,11 +21,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Install dependencies
       run: |
           sudo apt-get update
-          sudo apt-get install -y libboost-all-dev
+          sudo apt-get install -y libboost-all-dev libasio-dev libssl-dev
           git clone https://github.com/CrowCpp/Crow.git /tmp/crow
           cd /tmp/crow
           mkdir build && cd build
@@ -46,4 +46,3 @@ jobs:
       # Execute tests defined by the CMake configuration.
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest -C ${{env.BUILD_TYPE}}
-
