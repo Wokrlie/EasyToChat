@@ -8,13 +8,13 @@ on:
     paths:
       - "backend/**"
       - "desktop-client/**"
-      - ".github/workflow/**"
+      - ".github/workflows/**"
   pull_request:
     branches: [ "main" ]
     paths:
       - "backend/**"
       - "desktop-client/**"
-      - ".github/workflow/**"
+      - ".github/workflows/**"
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)

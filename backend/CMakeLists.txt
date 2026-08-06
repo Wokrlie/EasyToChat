@@ -19,7 +19,6 @@ find_package(jwt-cpp CONFIG REQUIRED)
 
 file(GLOB_RECURSE SOURCES
      "src/*.cpp"
-     "src/*.c"
 )
 
 add_executable(EasyToChatBackend ${SOURCES})
