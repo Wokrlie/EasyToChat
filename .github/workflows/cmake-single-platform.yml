@@ -45,7 +45,7 @@ jobs:
 
     - name: Install jwt-cpp
       run: |
-          sudo git clone --depth 1 https://github.com/Thalhammer/jwt-cpp.git /tmp/jwt-cpp
+          git clone --depth 1 https://github.com/Thalhammer/jwt-cpp.git /tmp/jwt-cpp
           cd /tmp/jwt-cpp
           mkdir build && cd build
           cmake ..
