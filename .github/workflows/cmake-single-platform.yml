@@ -28,8 +28,9 @@ jobs:
       run: |
           sudo apt-get update
           sudo apt-get install -y libboost-all-dev libasio-dev libssl-dev libwebkit2gtk-4.1-dev libgtk-3-dev
+
     - name: Install Crow
-      run:
+      run: |
         git clone https://github.com/CrowCpp/Crow.git /tmp/crow
         cd /tmp/crow
         mkdir build && cd build
