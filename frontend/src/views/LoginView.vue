@@ -11,12 +11,10 @@
      <label for="login-username">Username</label>
      <input id="login-username" v-model="username" type="text" placeholder="Please type username" />
    </div>
-   <!--
    <div class="input-group">
      <label for="login-password">Password</label>
      <input id="login-password" v-model="password" type="password" placeholder="Please type password" />
    </div>
-   -->
  </AuthView>
  </template>
 
@@ -24,19 +22,20 @@
 import { chatApi } from '@/api/chatApi'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import type AuthView from './AuthView.vue'
+import AuthView from './AuthView.vue'
 import { ref } from 'vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 
 const username = ref('')
+const password = ref('')
 
 const login = async () => {
   try {
-    const response = await chatApi.auth_login(username.value)
+    const response = await chatApi.auth_login(username.value, password.value)
     const data = response.data
-    userStore.login(data.nickname, data.username)
+    userStore.login(data.nickname, data.username, data.token)
     console.log("User's nickname: ", data.nickname)
     router.replace('/')
   } catch (error) {

@@ -51,22 +51,27 @@ int main(int argc, char* argv[]) {
         });
 
     if (g_messages.empty()) g_messages.push_back({
-            g_next_id++,
-            SenderType::System,
-            "",
-            "There is not any messages. Try to send some!",
-            get_current_time()
-        });
+        g_next_id++,
+        SenderType::System,
+        "",
+        "There is not any messages. Try to send some!",
+        get_current_time()
+    });
 
     CROW_ROUTE(app, "/api/messages")
         ([](const crow::request& req) {
             std::lock_guard<std::mutex> lock(g_message_mutex);
-            auto body = crow::json::load(req.body);
-            if (!body.has("token") || !body.has("username")) return crow::response(400, "Missing params");
-            std::string token = body["token"].s();
-            std::string username = body["username"].s();
-            if (!verify_token(token, username)) return crow::response(401, "Invaild token");
 
+            std::string auth_header = req.get_header_value("Authorization");
+            if (auth_header.empty()) return crow::response(401, "Missing Authorization header");
+            const std::string prefix = "Bearer ";
+            if (auth_header.compare(0, prefix.size(), prefix) != 0) return crow::response(401, "Invalid Authorization format");
+
+            std::string token = auth_header.substr(prefix.size());
+            auto username_opt = verify_token(token);
+            if (!username_opt.has_value()) return crow::response(401, "Invalid token");
+
+            // auth
             std::vector<crow::json::wvalue> json_messages;
             for (const auto& msg : g_messages) {
                 crow::json::wvalue json_msg;
@@ -93,17 +98,21 @@ int main(int argc, char* argv[]) {
             if (!body.has("content")
                 || !body.has("sender_type")
                 || !body.has("sender_name")
-                || !body.has("username")
-                || !body.has("token")
             ) {
                 return crow::response(400, "Failed because of omissions of paramters.");
             }
 
-            std::string token = body["token"].s();
-            std::string username = body["username"].s();
-            if (!verify_token(token, username)) {
-                return crow::response(401, "Invaild token");
-            }
+            std::string auth_header = req.get_header_value("Authorization");
+            if (auth_header.empty()) return crow::response(401, "Missing Authorization header");
+            const std::string prefix = "Bearer ";
+            if (auth_header.compare(0, prefix.size(), prefix) != 0) return crow::response(401, "Invalid Authorization format");
+
+            std::string token = auth_header.substr(prefix.size());
+            auto username_opt = verify_token(token);
+            if (!username_opt.has_value()) return crow::response(401, "Invalid token");
+
+
+            if (!verify_token(token).has_value()) return crow::response(401, "Invaild token");
 
             std::string content = body["content"].s();
             std::string sender_type_str = body["sender_type"].s();
@@ -135,12 +144,16 @@ int main(int argc, char* argv[]) {
 
     CROW_ROUTE(app, "/api/auth/login").methods(crow::HTTPMethod::Post)
         ([](const crow::request& req) {
-            const char* username_cstr = req.url_params.get("username");
-            if (!username_cstr) {
-                return crow::response(400, "Missing 'username' query parameter");
+            auto body = crow::json::load(req.body);
+            if (!body) {
+                return crow::response(400, "Invalid JSON");
             }
-            CROW_LOG_INFO << "Usename: " << username_cstr;
-            std::string username = username_cstr;
+            if (!body.has("username") || !body.has("password")) {
+                return crow::response(400, "Missing username or password");
+            }
+            std::string username = body["username"].s();
+            std::string password = body["password"].s();
+            CROW_LOG_INFO << "Usename: " << username;
 
             std::shared_lock<std::shared_mutex> lock(g_user_mutex);
             auto it = g_users.find(username);
@@ -148,23 +161,22 @@ int main(int argc, char* argv[]) {
                 crow::json::wvalue err;
                 err["error"] = "User not found";
                 return crow::response(404, err);
-            } else {
-                const User& user = it->second;
-                std::string token = generate_token(username);
-
-               crow::json::wvalue result;
-               result["token"] = token;
-               result["user"]["nickname"] = user.nickname;
-               result["user"]["username"] = user.username;
-               result["user"]["gender"] = gender_to_string(user.gender);
-               // ...
-               return crow::response(200, result);
             }
+            const User& user = it->second;
+            std::string token = generate_token(username);
+
+            crow::json::wvalue result;
+            result["token"] = token;
+            result["nickname"] = user.nickname;
+            result["username"] = user.username;
+            result["gender"] = gender_to_string(user.gender);
+            // ...
+            return crow::response(200, result);
         });
     CROW_ROUTE(app, "/api/auth/register").methods(crow::HTTPMethod::Post)
         ([](const crow::request& req){
             auto body = crow::json::load(req.body);
-            if (!body.has("username") || !body.has("nickname")) {
+            if (!body.has("username") || !body.has("nickname") || !body.has("password")) {
                 crow::json::wvalue err;
                 err["error"] = "Failed to get require params";
                 return crow::response(400, err);
@@ -172,7 +184,9 @@ int main(int argc, char* argv[]) {
 
             std::unique_lock<std::shared_mutex> lock(g_user_mutex);
             User user = {
-                body["nickname"].s()
+                body["username"].s(),
+                body["nickname"].s(),
+                body["password"].s()
             };
             if (body.has("gender")) user.gender = string_to_gender(body["gender"].s());
 

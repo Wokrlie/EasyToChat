@@ -16,16 +16,16 @@ std::string generate_token(const std::string &username) {
     return token;
 }
 
-bool verify_token(const std::string &token, std::string &username) {
+// I hate the style which change value of paramter by reference
+std::optional<std::string> verify_token(const std::string &token) {
     try {
         auto decoded = jwt::decode(token);
         auto verifyer = jwt::verify()
             .allow_algorithm(jwt::algorithm::hs256{KEY_SECRET})
             .with_issuer("EasyToChat");
         verifyer.verify(decoded);
-        username = decoded.get_payload_claim("username").as_string();
-        return true;
+        return decoded.get_payload_claim("username").as_string();
     } catch (...) {
-        return false;
+        return std::nullopt;
     }
 }

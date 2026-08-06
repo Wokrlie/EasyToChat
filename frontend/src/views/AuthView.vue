@@ -51,6 +51,8 @@ defineEmits(['submit']);
   -webkit-backdrop-filter: blur(8px);
   border-radius: 32px;
   padding: 48px 40px;
+  max-height: 90vh;
+  overflow-y: auto;
   width: 100%;
   max-width: 400px;
   box-shadow: 0 12px 40px rgba(76, 175, 80, 0.15);

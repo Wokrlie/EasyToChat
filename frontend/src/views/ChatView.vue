@@ -66,7 +66,7 @@ const sendMessage = async () => {
   if (!content) return
 
   try {
-    await chatApi.sendMessage(content, currentUserNickname.value)
+    await chatApi.sendMessage(content, currentUserNickname.value, userStore.token)
     await fetchMessages()
     entryText.value = ''
   } catch (error) {

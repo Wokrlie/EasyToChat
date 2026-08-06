@@ -7,7 +7,7 @@
   link-to="/login"
   @submit="register">
     <div class="input-group">
-      <div class="tip-label">Username</div>
+      <label for="register-username">Username</label>
       <input
         id="username"
         type="text"
@@ -16,13 +16,22 @@
       />
     </div>
     <div class="input-group">
-      <div class="tip-label">Nickname</div>
+      <label for="register-nickname">Nickname</label>
       <input
         id="nickname"
         type="text"
         placeholder="Please type some text here"
         v-model="nickname"
       />
+    </div>
+    <div class="input-group">
+      <label for="register-password">Password</label>
+        <input
+        id="password"
+        type="password"
+        placeholder="Please type some text here"
+        v-model="password"
+        />
     </div>
   </AuthView>
 </template>
@@ -34,12 +43,14 @@ import AuthView from './AuthView.vue'
 import { ref } from 'vue'
 
 const router = useRouter();
+
 const username = ref('')
 const nickname = ref('')
+const password = ref('')
 
 const register = async () => {
   try {
-    await chatApi.auth_register(username.value, nickname.value);
+    await chatApi.auth_register(username.value, nickname.value, password.value);
     router.replace("/login");
   } catch (error) {
     console.error("Register failed", error);

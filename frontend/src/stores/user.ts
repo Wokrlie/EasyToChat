@@ -7,9 +7,11 @@ export const useUserStore = defineStore(
     const isLoggedIn = ref(false)
     const nickname = ref('')
     const username = ref('')
-    function login(userNickname: string, userName: string) {
+    const token = ref('')
+    function login(userNickname: string, userName: string, generatedToken: string) {
       nickname.value = userNickname
       username.value = userName
+      token.value = generatedToken
       isLoggedIn.value = true
     }
     function logout() {
@@ -17,13 +19,20 @@ export const useUserStore = defineStore(
       username.value = ''
       isLoggedIn.value = false
     }
-    return { isLoggedIn, nickname, username, login, logout }
+    return {
+      isLoggedIn,
+      nickname,
+      username,
+      token,
+      login,
+      logout,
+    }
   },
   {
     persist: {
       key: 'user-store',
       storage: sessionStorage,
-      pick: ['nickname', 'isLoggedIn', 'username'],
+      pick: ['nickname', 'isLoggedIn', 'username', 'token'],
     },
   },
 )
