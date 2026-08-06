@@ -1,6 +1,5 @@
 import axios from 'axios'
 import type { Message } from '@/types/message'
-import type { User } from '@/types/user'
 
 const apiClient = axios.create({
   baseURL: '/api',
@@ -18,10 +17,11 @@ export const chatApi = {
       sender_name: senderName,
     })
   },
-  auth_login(username: string) {
-    return apiClient.get<User>('/auth/login', {
+  auth_login(username: string, password: string) {
+    return apiClient.post('/auth/login', {
       params: {
         username,
+        password,
       },
     })
   },

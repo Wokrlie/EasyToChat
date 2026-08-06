@@ -8,6 +8,7 @@ enum class Gender {
 };
 
 struct User {
+    std::string username;
     std::string nickname;
     Gender gender = Gender::KeepSecret;
     // ...

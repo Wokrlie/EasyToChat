@@ -17,6 +17,7 @@
 #include "functions/Time.h"
 #include "functions/Convert.h"
 #include "functions/Path.h"
+#include "functions/JWT.h"
 #include "types/Message.h"
 #include "types/User.h"
 
@@ -58,8 +59,13 @@ int main(int argc, char* argv[]) {
         });
 
     CROW_ROUTE(app, "/api/messages")
-        ([]() {
+        ([](const crow::request& req) {
             std::lock_guard<std::mutex> lock(g_message_mutex);
+            auto body = crow::json::load(req.body);
+            if (!body.has("token") || !body.has("username")) return crow::response(400, "Missing params");
+            std::string token = body["token"].s();
+            std::string username = body["username"].s();
+            if (!verify_token(token, username)) return crow::response(401, "Invaild token");
 
             std::vector<crow::json::wvalue> json_messages;
             for (const auto& msg : g_messages) {
@@ -74,7 +80,7 @@ int main(int argc, char* argv[]) {
 
             crow::json::wvalue result;
             result = std::move(json_messages);
-            return result;
+            return crow::response(200, result);
         });
     CROW_ROUTE(app, "/api/messages").methods(crow::HTTPMethod::Post)
         ([](const crow::request& req) {
@@ -84,8 +90,19 @@ int main(int argc, char* argv[]) {
                 return crow::response(400, "Invaild JSON");
             }
 
-            if (!body.has("content") || !body.has("sender_type") || !body.has("sender_name")) {
-                return crow::response(400, "Missing fields: content, sender_type, sender_name");
+            if (!body.has("content")
+                || !body.has("sender_type")
+                || !body.has("sender_name")
+                || !body.has("username")
+                || !body.has("token")
+            ) {
+                return crow::response(400, "Failed because of omissions of paramters.");
+            }
+
+            std::string token = body["token"].s();
+            std::string username = body["username"].s();
+            if (!verify_token(token, username)) {
+                return crow::response(401, "Invaild token");
             }
 
             std::string content = body["content"].s();
@@ -116,7 +133,7 @@ int main(int argc, char* argv[]) {
             return crow::response(201);
         });
 
-    CROW_ROUTE(app, "/api/auth/login")
+    CROW_ROUTE(app, "/api/auth/login").methods(crow::HTTPMethod::Post)
         ([](const crow::request& req) {
             const char* username_cstr = req.url_params.get("username");
             if (!username_cstr) {
@@ -133,9 +150,13 @@ int main(int argc, char* argv[]) {
                 return crow::response(404, err);
             } else {
                 const User& user = it->second;
+                std::string token = generate_token(username);
 
                crow::json::wvalue result;
-               result["nickname"] = user.nickname;
+               result["token"] = token;
+               result["user"]["nickname"] = user.nickname;
+               result["user"]["username"] = user.username;
+               result["user"]["gender"] = gender_to_string(user.gender);
                // ...
                return crow::response(200, result);
             }
@@ -187,8 +208,7 @@ int main(int argc, char* argv[]) {
         })
         .onerror([](crow::websocket::connection& conn, const std::string& error) {
             CROW_LOG_ERROR << "Websocket error: " << error;
-        })
-    ;
+        });
 
     app.port(8080).multithreaded().run();
 }

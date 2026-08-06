@@ -15,6 +15,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(json)
 find_package(Crow REQUIRED)
+find_package(jwt-cpp CONFIG REQUIRED)
+
 file(GLOB_RECURSE SOURCES
      "src/*.cpp"
      "src/*.c"
@@ -24,4 +26,5 @@ add_executable(EasyToChatBackend ${SOURCES})
 target_link_libraries(EasyToChatBackend PRIVATE
     pthread
     nlohmann_json::nlohmann_json
+    jwt-cpp::jwt-cpp
 )
