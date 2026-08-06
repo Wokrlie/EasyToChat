@@ -46,7 +46,10 @@ jobs:
     - name: Install jwt-cpp
       run: |
           sudo git clone --depth 1 https://github.com/Thalhammer/jwt-cpp.git /tmp/jwt-cpp
-          sudo cp -r /tmp/jwt-cpp/include/jwt-cpp /usr/local/include
+          cd /tmp/jwt-cpp
+          mkdir build && cd build
+          cmake ..
+          sudo cmake --install .
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
