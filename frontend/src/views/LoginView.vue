@@ -1,23 +1,30 @@
 <template>
-  <div class="login-container">
-    <div class="input-container">
-      <div class="username-label">Username</div>
-      <input
-        id="username"
-        type="text"
-        placeholder="Please type some text here"
-        v-model="username"
-      />
-    </div>
-    <button class="login-button" type="submit" @click="login">Login</button>
-    <RouterLink to="/register" class="register-link"> I haven't registered </RouterLink>
-  </div>
-</template>
+<AuthView
+   title="🌿 Welcome back"
+   subtitle="Login EasyToChat"
+   button-text="Login"
+   link-text="I haven't registered"
+   link-to="/register"
+   @submit="login"
+ >
+   <div class="input-group">
+     <label for="login-username">Username</label>
+     <input id="login-username" v-model="username" type="text" placeholder="Please type username" />
+   </div>
+   <!--
+   <div class="input-group">
+     <label for="login-password">Password</label>
+     <input id="login-password" v-model="password" type="password" placeholder="Please type password" />
+   </div>
+   -->
+ </AuthView>
+ </template>
 
 <script setup lang="ts">
 import { chatApi } from '@/api/chatApi'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import type AuthView from './AuthView.vue'
 import { ref } from 'vue'
 
 const router = useRouter()
@@ -38,59 +45,4 @@ const login = async () => {
 }
 </script>
 
-<style scoped>
-.login-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 5px;
-  border-radius: 12px;
-  width: 100vw;
-  height: 100vh;
-}
-
-.username-label {
-  font-family: system-ui, monospace;
-  font-size: 20px;
-}
-
-.input-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 20%;
-}
-
-input {
-  border: 2px solid #ccc;
-  padding: 12px 16px;
-  border-radius: 8px;
-  font-size: 16px;
-}
-
-.login-button {
-  height: 60px;
-  width: 100px;
-  border-radius: 12px;
-  border-width: 0px;
-  background-color: #777;
-  transition: background-color 0.2s;
-  box-shadow: 4px 3px 4px;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.login-button:hover {
-  background-color: #7e7e7e;
-}
-
-.register-link {
-  text-decoration: none;
-  color: #9b9a9c;
-}
-.register-link:hover {
-  color: #abaaac;
-}
-</style>
+<style scoped></style>
