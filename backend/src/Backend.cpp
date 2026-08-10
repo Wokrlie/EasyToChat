@@ -1,7 +1,6 @@
 #include "Backend.h"
 #include "functions/Conver.h"
 #include "functions/auth/UUID.h"
-#include "functions/UserDataWS.h"
 #include <crow/json.h>
 #include <crow/logging.h>
 #include <uuid.h>
@@ -168,11 +167,6 @@ Backend::Backend() {
 
     CROW_WEBSOCKET_ROUTE(app, "/ws")
         .onaccept([](const crow::request& req, void**) {
-            auto body = crow::json::load(req.body);
-            if (!body.has("conver_id")) {
-                CROW_LOG_ERROR << "WebSocket connection is missing required data.";
-                return false;
-            }
             return true;
         })
         .onopen([&](crow::websocket::connection& conn) {
