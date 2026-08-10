@@ -51,6 +51,14 @@ jobs:
           cmake ..
           sudo cmake --install .
 
+    - name: Install stduuid # After trying FetchContent, the tranditional `find_package` is more stable.
+      run: |
+          git clone --depth 1 https://github.com/mariusbancila/stduuid.git /tmp/stduuid
+          cd /tmp/stduuid
+          mkdir build && cd build
+          cmake .. -DUUID_SYSTEM_GENERATOR=ON
+          sudo cmake --install .
+
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
