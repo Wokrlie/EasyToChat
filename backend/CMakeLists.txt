@@ -5,25 +5,28 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-include(FetchContent)
-set(FETCHCONTENT_QUIET OFF)
-
-FetchContent_Declare(
-  json
-  URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
-  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
-FetchContent_MakeAvailable(json)
 find_package(Crow REQUIRED)
 find_package(jwt-cpp CONFIG REQUIRED)
+find_package(LibDataChannel REQUIRED)
+find_package(stduuid REQUIRED)
 
 file(GLOB_RECURSE SOURCES
      "src/*.cpp"
 )
 
-add_executable(EasyToChatBackend ${SOURCES})
+
+add_library(EasyToChatBackend STATIC ${SOURCES})
 target_link_libraries(EasyToChatBackend PRIVATE
     pthread
-    nlohmann_json::nlohmann_json
     jwt-cpp::jwt-cpp
+    stduuid
 )
+target_include_directories(EasyToChatBackend PRIVATE
+    ${stduuid_SOURCE_DIR}/include
+)
+
+if(ENABLE_TESTS)
+    target_sources(EasyToChatBackend PRIVATE
+        tests/dependencies.cpp
+    )
+endif()

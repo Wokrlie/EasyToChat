@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
-#include "../types/Message.h"
-#include "../types/User.h"
+#include "Message.h"
+#include "User.h"
 
 std::string sender_type_to_string(SenderType type);
 SenderType string_to_sender_type(const std::string& value);
