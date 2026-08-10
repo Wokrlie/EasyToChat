@@ -73,7 +73,7 @@ jobs:
           git submodule update --init --depth 1
           mkdir build && cd build
           cmake ..
-          make --build . --parallel $(nproc)
+          make
           sudo cmake --install .
 
     - name: Configure CMake
