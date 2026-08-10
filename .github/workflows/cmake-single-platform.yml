@@ -59,6 +59,13 @@ jobs:
           cmake .. -DUUID_SYSTEM_GENERATOR=ON
           sudo cmake --install .
 
+    - name: Cache libdatachannel build
+      id: cahce-libdc
+      uses: actions/cache@4
+      with:
+        path: /tmp/libdatachannel/build
+        key: libdc-${{ hashFiles('backend/CMakeLists.txt')}}
+
     - name: Install LibDataChannel
       run: |
           git clone --depth 1 https://github.com/paullouisageneau/libdatachannel.git /tmp/libdatachannel
@@ -66,6 +73,7 @@ jobs:
           git submodule update --init --depth 1
           mkdir build && cd build
           cmake ..
+          make --build . --parallel $(nproc)
           sudo cmake --install .
 
     - name: Configure CMake
