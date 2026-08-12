@@ -1,0 +1,10 @@
+{
+  "name": "easytochatbackend",
+  "version": "0.0.1",
+  "dependencies": [
+      "jwt-cpp",
+      "libdatachannel",
+      "crow",
+      "stduuid"
+  ]
+}
