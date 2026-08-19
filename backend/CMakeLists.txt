@@ -5,10 +5,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(Crow REQUIRED)
+find_package(Crow CONFIG REQUIRED)
 find_package(jwt-cpp CONFIG REQUIRED)
 find_package(LibDataChannel REQUIRED)
-find_package(stduuid REQUIRED)
+find_package(stduuid CONFIG REQUIRED)
 
 file(GLOB_RECURSE SOURCES
      "src/*.cpp"

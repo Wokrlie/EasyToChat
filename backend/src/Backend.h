@@ -32,13 +32,13 @@ class Backend {
     private:
         crow::SimpleApp app;
 
-        std::unordered_map<ConverID, Conver> _conversations;
+        std::unordered_map<std::string, Conver> _conversations;
         std::mutex _conver_mutex;
 
         std::unordered_map<std::string, User> _users; // username match User
         std::shared_mutex _user_mutex;
 
-        std::unordered_map<ConverID, std::vector<crow::websocket::connection*>> _connections; // Conver id match conns
+        std::unordered_map<std::string, std::vector<crow::websocket::connection*>> _connections; // Conver id match conns
         std::mutex _conn_mutex;
 
 };

@@ -1,8 +1,15 @@
 #include "Backend.h"
-#include "functions/Conver.h"
+#include "functions/auth/JWT.h"
 #include "functions/auth/UUID.h"
+#include <crow/app.h>
+#include <crow/common.h>
+#include <crow/http_request.h>
+#include <crow/http_response.h>
 #include <crow/json.h>
 #include <crow/logging.h>
+#include <mutex>
+#include <optional>
+#include <string>
 #include <uuid.h>
 
 Backend::Backend() {
@@ -19,22 +26,42 @@ Backend::Backend() {
             return crow::response("pong");
         });
 
+    CROW_ROUTE(app, "/api/convers")
+        ([&](const crow::request& req){
+            auto body = crow::json::load(req.body);
+
+            crow::json::wvalue result;
+            return crow::response(200, result);
+        });
+
+    CROW_ROUTE(app, "/api/convers/create").methods(crow::HTTPMethod::Post)
+        ([&](const crow::request& req){
+            const std::optional<std::string> username = verify_from_req(req);
+            if (username == std::nullopt) return crow::response(401, "Failed to verify token");
+            auto body = crow::json::load(req.body);
+            if (!body.has("conver_name") ||
+                !body.has("usernames")
+            ) return crow::response(400, "Fields may miss: conver_id, usernames");
+
+            std::string conver_name = body["conver_name"].s();
+            std::lock_guard<std::mutex> lock(_conver_mutex);
+
+            User creator = _users.find(username.value())->second;
+            Conver conver { conver_name, std::vector<User>{ creator } };
+
+            crow::json::wvalue result;
+            result["conver_id"] = uuids::to_string(conver.get_id());
+            return crow::response(200, result);
+        });
+
     CROW_ROUTE(app, "/api/messages")
         ([&](const crow::request& req) {
-            std::string auth_header = req.get_header_value("Authorization");
-            if (auth_header.empty()) return crow::response(401, "Missing Authorization header");
-            const std::string prefix = "Bearer ";
-            if (auth_header.compare(0, prefix.size(), prefix) != 0) return crow::response(401, "Invalid Authorization format");
-
-            std::string token = auth_header.substr(prefix.size());
-            auto username_opt = verify_token(token);
-            if (!username_opt.has_value()) return crow::response(401, "Invalid token");
-
+            if (verify_from_req(req) == std::nullopt) return crow::response(401, "Failed to verify token");
             auto body = crow::json::load(req.body);
             if (!body.has("conver_id")) return crow::response(400, "Missing field: conver_id");
-            Conver conver = g_conversations.find(body["conver_id"].s())->second;
+            Conver conver = _conversations.find(body["conver_id"].s())->second;
 
-            std::lock_guard<std::mutex> lock(g_conver_mutex);
+            std::lock_guard<std::mutex> lock(_conver_mutex);
             std::vector<crow::json::wvalue> json_messages;
             for (const auto& msg : conver.get_message()) {
                 crow::json::wvalue json_msg;
@@ -52,23 +79,11 @@ Backend::Backend() {
         });
     CROW_ROUTE(app, "/api/messages").methods(crow::HTTPMethod::Post)
         ([&](const crow::request& req) {
-            std::string auth_header = req.get_header_value("Authorization");
-            if (auth_header.empty()) return crow::response(401, "Missing Authorization header");
-            const std::string prefix = "Bearer ";
-            if (auth_header.compare(0, prefix.size(), prefix) != 0) return crow::response(401, "Invalid Authorization format");
-
-            std::string token = auth_header.substr(prefix.size());
-            auto username_opt = verify_token(token);
-            if (!username_opt.has_value()) return crow::response(401, "Invalid token");
-
-
-            if (!verify_token(token).has_value()) return crow::response(401, "Invaild token");
+            if (verify_from_req(req) == std::nullopt) return crow::response(401, "Failed to verify token.");
 
             CROW_LOG_DEBUG << "Received POST body: " << req.body;
             auto body = crow::json::load(req.body);
-            if (!body) {
-                return crow::response(400, "Invaild JSON");
-            }
+            if (!body) return crow::response(400, "Invaild JSON");
 
             if (!body.has("content")
                 || !body.has("sender_type")
@@ -86,8 +101,8 @@ Backend::Backend() {
 
             std::string conver_id = body["conver_id"].s();
             {
-                std::lock_guard<std::mutex> lock(g_conver_mutex);
-                Conver conver = g_conversations.find(body["conver_id"].s())->second;
+                std::lock_guard<std::mutex> lock(_conver_mutex);
+                Conver conver = _conversations.find(body["conver_id"].s())->second;
 
                 Message msg{
                     UUIDGenerator::instance().generate(),
@@ -102,7 +117,7 @@ Backend::Backend() {
 
             crow::json::wvalue broadcast_msg;
             broadcast_msg["type"] = "new_msg";
-            broadcast_message(broadcast_msg.dump(), g_connections.find(conver_id)->second);
+            broadcast_message(broadcast_msg.dump(), _connections.find(conver_id)->second);
 
             return crow::response(201);
         });
@@ -120,9 +135,9 @@ Backend::Backend() {
             std::string password = body["password"].s();
             CROW_LOG_INFO << "Usename: " << username;
 
-            std::shared_lock<std::shared_mutex> lock(g_user_mutex);
-            auto it = g_users.find(username);
-            if (it == g_users.end()) {
+            std::shared_lock<std::shared_mutex> lock(_user_mutex);
+            auto it = _users.find(username);
+            if (it == _users.end()) {
                 crow::json::wvalue err;
                 err["error"] = "User not found";
                 return crow::response(404, err);
@@ -147,7 +162,7 @@ Backend::Backend() {
                 return crow::response(400, err);
             }
 
-            std::unique_lock<std::shared_mutex> lock(g_user_mutex);
+            std::unique_lock<std::shared_mutex> lock(_user_mutex);
             User user = {
                 body["username"].s(),
                 body["nickname"].s(),
@@ -155,7 +170,7 @@ Backend::Backend() {
             };
             if (body.has("gender")) user.gender = string_to_gender(body["gender"].s());
 
-            auto [it, inserted] = g_users.insert_or_assign(body["username"].s(), user);
+            auto [it, inserted] = _users.insert_or_assign(body["username"].s(), user);
             if (inserted) {
                 return crow::response(201);
             }
@@ -171,14 +186,14 @@ Backend::Backend() {
         })
         .onopen([&](crow::websocket::connection& conn) {
             CROW_LOG_INFO << "Websocket client connected";
-            std::lock_guard<std::mutex> lock(g_conn_mutex);
+            std::lock_guard<std::mutex> lock(_conn_mutex);
 
         })
         .onmessage([](crow::websocket::connection& conn, const std::string& data, bool is_binary) {
         })
         .onclose([&](crow::websocket::connection& conn, const std::string& reason, unsigned short code) {
             CROW_LOG_INFO << "Connection have been closed, reason: " << reason << ", status code: " << code;
-            std::lock_guard<std::mutex> lock(g_conn_mutex);
+            std::lock_guard<std::mutex> lock(_conn_mutex);
 
         })
         .onerror([](crow::websocket::connection& conn, const std::string& error) {
