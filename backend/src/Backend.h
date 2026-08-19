@@ -16,11 +16,11 @@
 #include <utility>
 #include <vector>
 
-#include "functions/Convert.h"
-#include "functions/Path.h"
-#include "functions/Time.h"
+#include "functions/utils/Convert.h"
+#include "functions/utils/Path.h"
+#include "functions/utils/Time.h"
 #include "functions/auth/JWT.h"
-#include "functions/Conver.h"
+#include "functions/type/Conver.h"
 
 
 class Backend {
@@ -32,13 +32,13 @@ class Backend {
     private:
         crow::SimpleApp app;
 
-        std::unordered_map<ConverID, Conver> g_conversations;
-        std::mutex g_conver_mutex;
+        std::unordered_map<ConverID, Conver> _conversations;
+        std::mutex _conver_mutex;
 
-        std::unordered_map<std::string, User> g_users; // username match Conver
-        std::shared_mutex g_user_mutex;
+        std::unordered_map<std::string, User> _users; // username match User
+        std::shared_mutex _user_mutex;
 
-        std::unordered_map<std::string, std::vector<crow::websocket::connection*>> g_connections; // Conver id match conns
-        std::mutex g_conn_mutex;
+        std::unordered_map<ConverID, std::vector<crow::websocket::connection*>> _connections; // Conver id match conns
+        std::mutex _conn_mutex;
 
 };
