@@ -48,6 +48,7 @@ Backend::Backend() {
 
             User creator = _users.find(username.value())->second;
             Conver conver { conver_name, std::vector<User>{ creator } };
+            _conversations.insert_or_assign(uuids::to_string(conver.get_id()), conver);
 
             crow::json::wvalue result;
             result["conver_id"] = uuids::to_string(conver.get_id());

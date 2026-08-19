@@ -14,7 +14,7 @@ class Conver {
         ConverID get_id() { return id_; }
         void receive_message(Message message);
         void receive_user(User user);
-        Conver(const std::string& name, std::vector<User> users) : name_(name), users_(users) {}
+        Conver(const std::string& name, std::vector<User> users);
         ~Conver();
 
     private:

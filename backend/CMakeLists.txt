@@ -14,19 +14,12 @@ file(GLOB_RECURSE SOURCES
      "src/*.cpp"
 )
 
-
-add_library(EasyToChatBackend STATIC ${SOURCES})
-target_link_libraries(EasyToChatBackend PRIVATE
+add_library(ETCBackend STATIC ${SOURCES})
+target_link_libraries(ETCBackend PRIVATE
     pthread
     jwt-cpp::jwt-cpp
     stduuid
 )
-target_include_directories(EasyToChatBackend PRIVATE
+target_include_directories(ETCBackend PRIVATE
     ${stduuid_SOURCE_DIR}/include
 )
-
-if(ENABLE_TESTS)
-    target_sources(EasyToChatBackend PRIVATE
-        tests/dependencies.cpp
-    )
-endif()

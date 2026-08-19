@@ -1,9 +1,9 @@
 #include "Conver.h"
 #include "Message.h"
-#include "Time.h"
-#include "auth/UUID.h"
+#include "../utils/Time.h"
+#include "../auth/UUID.h"
 
-Conver::Conver() {
+Conver::Conver(const std::string& name, std::vector<User> users) : name_(name), users_(users) {
     messages_.push_back({
         UUIDGenerator::instance().generate(),
         SenderType::System,
