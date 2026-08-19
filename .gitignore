@@ -38,6 +38,8 @@ __screenshots__/
 # Vite
 *.timestamp-*-*.mjs
 
+vcpkg_installed/
+
 # Backend
 build/
 
