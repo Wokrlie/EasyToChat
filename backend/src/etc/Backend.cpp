@@ -1,6 +1,8 @@
 #include "Backend.h"
 #include "functions/auth/JWT.h"
 #include "functions/auth/UUID.h"
+#include "functions/type/Conver.h"
+#include "functions/utils/Convert.h"
 #include <crow/app.h>
 #include <crow/common.h>
 #include <crow/http_request.h>
@@ -13,6 +15,7 @@
 #include <uuid.h>
 
 Backend::Backend() {
+    init();
     std::filesystem::path staticDir = getStaticDir();
     CROW_ROUTE(app, "/")
         ([&]() {
@@ -30,7 +33,11 @@ Backend::Backend() {
         ([&](const crow::request& req){
             auto body = crow::json::load(req.body);
 
+            std::lock_guard<std::mutex> lock(_conver_mutex);
+            std::vector<crow::json::wvalue> json_convers;
+
             crow::json::wvalue result;
+            result = std::move(json_convers);
             return crow::response(200, result);
         });
 
@@ -48,10 +55,11 @@ Backend::Backend() {
 
             User creator = _users.find(username.value())->second;
             Conver conver { conver_name, std::vector<User>{ creator } };
-            _conversations.insert_or_assign(uuids::to_string(conver.get_id()), conver);
+            ConverID id = generate_conver_id();
+            _conversations.insert_or_assign(id, conver);
 
             crow::json::wvalue result;
-            result["conver_id"] = uuids::to_string(conver.get_id());
+            result["conver_id"] = id.to_string();
             return crow::response(200, result);
         });
 
@@ -60,7 +68,7 @@ Backend::Backend() {
             if (verify_from_req(req) == std::nullopt) return crow::response(401, "Failed to verify token");
             auto body = crow::json::load(req.body);
             if (!body.has("conver_id")) return crow::response(400, "Missing field: conver_id");
-            Conver conver = _conversations.find(body["conver_id"].s())->second;
+            const auto& conver = _conversations.find(string_to_converID(body["conver_id"].s()))->second;
 
             std::lock_guard<std::mutex> lock(_conver_mutex);
             std::vector<crow::json::wvalue> json_messages;
@@ -103,7 +111,7 @@ Backend::Backend() {
             std::string conver_id = body["conver_id"].s();
             {
                 std::lock_guard<std::mutex> lock(_conver_mutex);
-                Conver conver = _conversations.find(body["conver_id"].s())->second;
+                Conver conver = _conversations.find(string_to_converID(body["conver_id"].s()))->second;
 
                 Message msg{
                     UUIDGenerator::instance().generate(),
@@ -205,4 +213,10 @@ Backend::Backend() {
 
 void Backend::run() {
     app.port(8080).multithreaded().run();
+}
+
+void Backend::init() {
+    if (!_conversations.empty()) return; // If we need to initialize other memebers(e.g. load conversations from data), modify this action
+    Conver main_conver("MainConver", { User{ "system" }});
+    _conversations.insert_or_assign(generate_conver_id(), main_conver);
 }

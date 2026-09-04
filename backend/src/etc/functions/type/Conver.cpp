@@ -13,6 +13,8 @@ Conver::Conver(const std::string& name, std::vector<User> users) : name_(name), 
     });
 }
 
+Conver::~Conver() {}
+
 void Conver::receive_message(Message message) {
     if (messages_.size() == 0 && messages_[0].sender_type == SenderType::System) {
         messages_.clear();

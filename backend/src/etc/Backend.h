@@ -7,6 +7,7 @@
 #include <crow/logging.h>
 #include <crow/routing.h>
 #include <crow/websocket.h>
+#include <memory>
 #include <rtc/rtc.hpp>
 #include <filesystem>
 #include <mutex>
@@ -23,16 +24,34 @@
 #include "functions/type/Conver.h"
 
 
-class Backend {
+#if defined(_WIN32) || defined(_WIN64)
+  #ifdef BACKEND_BUILD_AS_SHARED
+    #define BACKEND_API __declspec(dllexport)
+  #else
+    #define BACKEND_API __declspec(dllimport)
+  #endif
+#else
+  #if __GNUC__ >= 4
+    #define BACKEND_API __attribute__((visibility("default")))
+  #else
+    #define BACKEND_API
+  #endif
+#endif
+
+
+class BACKEND_API Backend {
     public:
         Backend();
         void run();
         ~Backend();
 
     private:
+        // METHODs
+        void init();
+        // DATAs
         crow::SimpleApp app;
 
-        std::unordered_map<std::string, Conver> _conversations;
+        std::unordered_map<ConverID, Conver> _conversations; // ConverID match Conver
         std::mutex _conver_mutex;
 
         std::unordered_map<std::string, User> _users; // username match User

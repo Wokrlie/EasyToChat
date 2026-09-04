@@ -5,7 +5,7 @@
     "jwt-cpp",
     "libdatachannel",
     "crow",
-    "stduuid"
-  ],
-  "builtin-baseline": "89fd51fcb7c178e1c88a75134d9a4c245f7811ed"
+    "stduuid",
+    "nlohmann-json"
+  ]
 }
