@@ -59,7 +59,7 @@ jobs:
         run: |
           ${{ github.workspace }}/vcpkg/vcpkg install \
             --triplet=x64-linux \
-            --x-install=${{ github.workspace }}/vcpkg/installed
+            --x-install-root=${{ github.workspace }}/vcpkg/installed
 
       - name: Configure CMake (via preset)
         run: cmake --preset release
