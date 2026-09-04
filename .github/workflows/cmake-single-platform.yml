@@ -9,6 +9,8 @@ on:
       - ".github/workflows/cmake-build.yml"
       - "CMakeLists.txt"
       - "CMakePresets.json"
+      - "vcpkg.json"
+      - "vcpkg-configuration.json"
   pull_request:
     branches: ["main"]
     paths:
@@ -17,6 +19,8 @@ on:
       - ".github/workflows/cmake-build.yml"
       - "CMakeLists.txt"
       - "CMakePresets.json"
+      - "vcpkg.json"
+      - "vcpkg-configuration.json"
 
 env:
   BUILD_TYPE: Release
