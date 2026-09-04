@@ -6,7 +6,7 @@ on:
     paths:
       - "backend/**"
       - "desktop-client/**"
-      - ".github/workflows/cmake-build.yml"
+      - ".github/workflows/cmake-single-platform.yml"
       - "CMakeLists.txt"
       - "CMakePresets.json"
       - "vcpkg.json"
@@ -16,7 +16,7 @@ on:
     paths:
       - "backend/**"
       - "desktop-client/**"
-      - ".github/workflows/cmake-build.yml"
+      - ".github/workflows/cmake-single-platform.yml"
       - "CMakeLists.txt"
       - "CMakePresets.json"
       - "vcpkg.json"
